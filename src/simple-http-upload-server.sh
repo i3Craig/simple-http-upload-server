@@ -21,25 +21,14 @@ echo "Setting up server at: 'http://$HOSTNAME:$HOST_PORT'."
 
 # Main server loop to receive connections and handle accordingly
 while true ; do
-  # Determine a name for the current file
-  # Only create a new file if the previous file does not exist or the previous file has data.
-  #if [ -z "$cUploadFile" ] \
-  #  || ( [[ "$(du -b "$cUploadFile")" =~ ^([0-9]+) ]] &&  [ "${BASH_REMATCH[1]}" -gt 0 ] ) ; then
-    # If this is not the first file created, then we must have just saved a file that was uploaded.
-    # Here, we print out that file name.
- #   if [ -n "$cUploadFile" ] ; then
- #     echo "File uploaded as '$cUploadFile' with size ${BASH_REMATCH[1]} bytes."
- #   fi
-
- #   cUploadFile="$(mktemp 'upload.XXX')"
- # fi
   
   # Send the HTML page to the browser.
   # The code after nc (netcat) parses out the uploaded http "multipart" form data and saves it to a file.
   # Note that the 'sub(/\r$/,"")' calls remove the \r from the Windows newline characters that are
   # provided by the browser.
+  # LC_ALL=C prevents errors in awk when data that is not text is passed through.
   echo -e "HTTP/1.0 200\r\nServer: Test\r\nContent-Type:text/html\r\n\r\n<form method=post action=/ enctype=multipart/form-data><input name=upload type=file multiple><input type=submit></form>" | \
-        nc -N -l $HOST_PORT | tee -a out | \
+        nc -N -l $HOST_PORT | \
         LC_ALL=C awk '
           # Functions
           # Handles when the current file upload is done.
